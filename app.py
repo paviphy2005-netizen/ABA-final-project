@@ -25,7 +25,7 @@ st.success("✅ Model loaded successfully")
 
 # Sidebar Inputs
 st.sidebar.header("Enter MSME Details")
-
+Age = st.sidebar.slider("Age", 18, 80, 30)
 Income = st.sidebar.slider("Income", 10000, 1000000, 50000)
 LoanAmount = st.sidebar.slider("Loan Amount", 1000, 500000, 10000)
 CreditScore = st.sidebar.slider("Credit Score", 300, 900, 650)
