@@ -2,13 +2,26 @@ import streamlit as st
 import pandas as pd
 import pickle
 import plotly.express as px
+import os
 
-# Load model files
+st.title("📊 MSME Loan Default Prediction Dashboard")
+
+# ✅ CHECK FILES FIRST (VERY IMPORTANT)
+required_files = ['model.pkl', 'scaler.pkl', 'encoders.pkl']
+
+missing_files = [f for f in required_files if not os.path.exists(f)]
+
+if missing_files:
+    st.error(f"❌ Missing files in GitHub repo: {missing_files}")
+    st.info("👉 Upload model.pkl, scaler.pkl, encoders.pkl to your repository")
+    st.stop()
+
+# ✅ LOAD FILES SAFELY
 model = pickle.load(open('model.pkl', 'rb'))
 scaler = pickle.load(open('scaler.pkl', 'rb'))
 encoders = pickle.load(open('encoders.pkl', 'rb'))
 
-st.title("📊 MSME Loan Default Prediction Dashboard")
+st.success("✅ Model loaded successfully")
 
 # Sidebar Inputs
 st.sidebar.header("Enter MSME Details")
@@ -27,7 +40,7 @@ EmploymentType = st.sidebar.selectbox("Employment Type", ["Salaried", "Self-Empl
 MaritalStatus = st.sidebar.selectbox("Marital Status", ["Single", "Married"])
 HasMortgage = st.sidebar.selectbox("Has Mortgage", ["Yes", "No"])
 
-# Create input dataframe
+# Input Data
 input_data = pd.DataFrame({
     'Income':[Income],
     'LoanAmount':[LoanAmount],
@@ -43,7 +56,7 @@ input_data = pd.DataFrame({
     'HasMortgage':[HasMortgage]
 })
 
-# ✅ SAFE ENCODING (FIXED)
+# ✅ SAFE ENCODING
 for col in encoders:
     try:
         if input_data[col][0] in encoders[col].classes_:
@@ -67,7 +80,7 @@ if st.button("Predict Risk"):
         else:
             st.success("✅ Low Risk")
 
-        # Pie Chart
+        # Pie chart
         fig = px.pie(
             values=[prob, 1-prob],
             names=["Default Risk", "Safe"],
@@ -76,9 +89,9 @@ if st.button("Predict Risk"):
         st.plotly_chart(fig)
 
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(f"Prediction Error: {e}")
 
-# Visualization Section
+# Visualization
 st.subheader("📊 Input Feature Visualization")
 
 data = pd.DataFrame({
