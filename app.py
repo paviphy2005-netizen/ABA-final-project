@@ -4,9 +4,10 @@ import numpy as np
 import pickle
 import plotly.express as px
 
-# Load model
+# Load model components
 model = pickle.load(open('model.pkl', 'rb'))
 scaler = pickle.load(open('scaler.pkl', 'rb'))
+encoders = pickle.load(open('encoders.pkl', 'rb'))
 
 st.title("📊 MSME Loan Default Prediction Dashboard")
 
@@ -31,16 +32,7 @@ HasDependents = st.sidebar.selectbox("Has Dependents", ["No", "Yes"])
 LoanPurpose = st.sidebar.selectbox("Loan Purpose", ["Auto", "Business", "Education", "Home", "Other"])
 HasCoSigner = st.sidebar.selectbox("Has Co-Signer", ["No", "Yes"])
 
-# Encode manually (must match training)
-edu_map = {"Graduate":0, "Postgraduate":1, "Others":2}
-emp_map = {"Salaried":0, "Self-Employed":1}
-mar_map = {"Single":0, "Married":1}
-mort_map = {"No":0, "Yes":1}
-dep_map = {"No":0, "Yes":1}
-pur_map = {"Auto":0, "Business":1, "Education":2, "Home":3, "Other":4}
-cos_map = {"No":0, "Yes":1}
-
-# Input dataframe
+# Create input dataframe (RAW values first)
 input_data = pd.DataFrame({
     'Age':[Age],
     'Income':[Income],
@@ -51,51 +43,56 @@ input_data = pd.DataFrame({
     'InterestRate':[InterestRate],
     'LoanTerm':[LoanTerm],
     'DTIRatio':[DTIRatio],
-    'Education':[edu_map[Education]],
-    'EmploymentType':[emp_map[EmploymentType]],
-    'MaritalStatus':[mar_map[MaritalStatus]],
-    'HasMortgage':[mort_map[HasMortgage]],
-    'HasDependents':[dep_map[HasDependents]],
-    'LoanPurpose':[pur_map[LoanPurpose]],
-    'HasCoSigner':[cos_map[HasCoSigner]]
+    'Education':[Education],
+    'EmploymentType':[EmploymentType],
+    'MaritalStatus':[MaritalStatus],
+    'HasMortgage':[HasMortgage],
+    'HasDependents':[HasDependents],
+    'LoanPurpose':[LoanPurpose],
+    'HasCoSigner':[HasCoSigner]
 })
 
-# Scale
-input_scaled = scaler.transform(input_data)
+# Apply encoding (same as training)
+for col in encoders:
+    input_data[col] = encoders[col].transform(input_data[col])
 
-# Prediction
+# Prediction button
 if st.button("Predict Risk"):
-    prob = model.predict_proba(input_scaled)[0][1]
+    try:
+        input_scaled = scaler.transform(input_data)
+        prob = model.predict_proba(input_scaled)[0][1]
 
-    st.subheader("📌 Default Probability")
-    st.write(f"{prob*100:.2f}%")
+        st.subheader("📌 Default Probability")
+        st.write(f"{prob*100:.2f}%")
 
-    if prob > 0.5:
-        st.error("⚠️ High Risk of Default")
-    else:
-        st.success("✅ Low Risk")
+        if prob > 0.5:
+            st.error("⚠️ High Risk of Default")
+        else:
+            st.success("✅ Low Risk")
 
-    # Gauge Chart
-    fig = px.pie(
-        values=[prob, 1-prob],
-        names=["Default Risk", "Safe"],
-        title="Risk Distribution"
-    )
-    st.plotly_chart(fig)
+        # Pie Chart
+        fig = px.pie(
+            values=[prob, 1-prob],
+            names=["Default Risk", "Safe"],
+            title="Risk Distribution"
+        )
+        st.plotly_chart(fig)
+
+    except Exception as e:
+        st.error(f"Error: {e}")
 
 # Visualization Section
 st.subheader("📊 Interactive Visualizations")
 
-# Dummy dataset for demo visuals
 data = pd.DataFrame({
     'Feature': input_data.columns,
     'Value': input_data.iloc[0]
 })
 
-# Bar chart
+# Bar Chart
 fig_bar = px.bar(data, x='Feature', y='Value', title="Input Feature Distribution")
 st.plotly_chart(fig_bar)
 
-# Line chart
+# Line Chart
 fig_line = px.line(data, x='Feature', y='Value', title="Trend View")
 st.plotly_chart(fig_line)
