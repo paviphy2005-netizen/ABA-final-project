@@ -5,9 +5,9 @@ import pickle
 st.title("MSME Loan Risk Debug")
 
 try:
-    model = pickle.load(open('model.pkl','rb'))
-    scaler = pickle.load(open('scaler.pkl','rb'))
-    encoders = pickle.load(open('encoders.pkl','rb'))
+    model = pickle.load(open('model (2).pkl','rb'))
+    scaler = pickle.load(open('scaler (2).pkl','rb'))
+    encoders = pickle.load(open('encoders (3).pkl','rb'))
 
     st.success("Files loaded successfully")
 
