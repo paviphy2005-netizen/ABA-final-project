@@ -17,9 +17,9 @@ if missing_files:
     st.stop()
 
 # ✅ LOAD FILES SAFELY
-model = pickle.load(open('model.pkl', 'rb'))
-scaler = pickle.load(open('scaler.pkl', 'rb'))
-encoders = pickle.load(open('encoders.pkl', 'rb'))
+model = pickle.load(open('model(2).pkl', 'rb'))
+scaler = pickle.load(open('scaler.pkl(2)', 'rb'))
+encoders = pickle.load(open('encoders(3).pkl', 'rb'))
 
 st.success("✅ Model loaded successfully")
 
